@@ -4,6 +4,17 @@ import express from "express";
 
 const app = express();
 
+// Intergiciel maison : méthode, URL, statut et durée de chaque requête.
+function requestLogger(req, res, next) {
+  const debut = performance.now();
+  res.on("finish", () => {
+    const duree = (performance.now() - debut).toFixed(1);
+    console.log(req.method, req.originalUrl, res.statusCode, `${duree} ms`);
+  });
+  next();
+}
+
+app.use(requestLogger);
 app.use(express.json());
 
 // Quelques ruches du jeu de données, en mémoire pour ce TP.
