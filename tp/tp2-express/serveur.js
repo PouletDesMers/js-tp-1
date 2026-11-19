@@ -2,10 +2,12 @@
 
 import express from "express";
 import morgan from "morgan";
+import hives from "../../data/hives.json" with { type: "json" };
 
 const app = express();
 
-// Intergiciel maison : méthode, URL, statut et durée de chaque requête.
+// Intergiciel maison 
+// Remplacer par morg
 function requestLogger(req, res, next) {
   const debut = performance.now();
   res.on("finish", () => {
@@ -15,21 +17,11 @@ function requestLogger(req, res, next) {
   next();
 }
 
-app.use(morgan("dev"));
-// Remplacé par morgan, qui journalise la même chose :
 // app.use(requestLogger);
+app.use(morgan("dev"));
 app.use(express.json());
 
-// Quelques ruches du jeu de données, en mémoire pour ce TP.
-const hives = [
-  { id: "CI-MAN-001", site_id: "CI-MAN", status: "active" },
-  { id: "CM-BAFO-001", site_id: "CM-BAFO", status: "active" },
-  { id: "SN-CASA-001", site_id: "SN-CASA", status: "active" },
-  { id: "SN-CASA-002", site_id: "SN-CASA", status: "active" },
-  { id: "SN-CASA-003", site_id: "SN-CASA", status: "active" },
-  { id: "SN-KOLD-001", site_id: "SN-KOLD", status: "active" },
-];
-
+// Données Importées depuis data/hives.json
 const measures = [];
 
 app.get("/api/hives", (req, res) => {
