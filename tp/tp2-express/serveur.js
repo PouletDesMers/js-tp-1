@@ -1,6 +1,7 @@
 // TP 2 — Premières routes Express sur des données en mémoire.
 
 import express from "express";
+import morgan from "morgan";
 
 const app = express();
 
@@ -14,7 +15,9 @@ function requestLogger(req, res, next) {
   next();
 }
 
-app.use(requestLogger);
+app.use(morgan("dev"));
+// Remplacé par morgan, qui journalise la même chose :
+// app.use(requestLogger);
 app.use(express.json());
 
 // Quelques ruches du jeu de données, en mémoire pour ce TP.
