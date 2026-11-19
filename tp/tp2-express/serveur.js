@@ -7,7 +7,7 @@ import hives from "../../data/hives.json" with { type: "json" };
 const app = express();
 
 // Intergiciel maison 
-// Remplacer par morg
+// Remplacer par morgan
 function requestLogger(req, res, next) {
   const debut = performance.now();
   res.on("finish", () => {
