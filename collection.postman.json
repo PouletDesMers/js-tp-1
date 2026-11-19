@@ -178,6 +178,161 @@
           }
         }
       ]
+    },
+    {
+      "name": "TP3",
+      "item": [
+        {
+          "name": "GET measures page 1 (limit=2)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/measures?limit=2",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "measures"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET measures page 2 (offset=2&limit=2)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/measures?offset=2&limit=2",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "measures"
+              ],
+              "query": [
+                {
+                  "key": "offset",
+                  "value": "2"
+                },
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET measures limit=0 (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/measures?limit=0",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "measures"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET measures ruche inconnue (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-999/measures",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-999",
+                "measures"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET inspections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/inspections",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "inspections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST inspections",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/inspections",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "inspections"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"4d1b7e2a-8c3f-4a9d-9e5b-1f2a3b4c5d6e\",\n  \"inspected_at\": \"2026-10-14T09:30:00Z\",\n  \"queen_present\": true,\n  \"colony_status\": \"forte\",\n  \"observations\": \"Couvain compact, réserves correctes.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }
