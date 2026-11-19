@@ -23,6 +23,14 @@ app.get("/api/hives", (req, res) => {
   res.json(site_id ? hives.filter((hive) => hive.site_id === site_id) : hives);
 });
 
+app.get("/api/hives/:id", (req, res) => {
+  const hive = hives.find((h) => h.id === req.params.id);
+  if (!hive) {
+    return res.status(404).json({ detail: `Aucune ruche ne porte l'identifiant ${req.params.id}.` });
+  }
+  res.json(hive);
+});
+
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
