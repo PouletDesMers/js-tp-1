@@ -6,11 +6,18 @@ const DATE_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d
 
 const estDateIso = (valeur) => typeof valeur === "string" && DATE_ISO.test(valeur) && !Number.isNaN(Date.parse(valeur));
 
+// Plage physique d'une ruche : 200 kg est déjà une ruche exceptionnellement lourde.
+const POIDS_MIN_EXCLU = 0;
+const POIDS_MAX = 200;
+
 // Renvoie un message de détail, ou null si le corps est valide.
 export function validerMesure(corps) {
   const { timestamp, weight_kg } = corps;
   if (!estDateIso(timestamp) || typeof weight_kg !== "number" || !Number.isFinite(weight_kg)) {
     return "timestamp (date ISO 8601) et weight_kg (nombre) sont obligatoires.";
+  }
+  if (weight_kg <= POIDS_MIN_EXCLU || weight_kg > POIDS_MAX) {
+    return `weight_kg doit être compris entre ${POIDS_MIN_EXCLU} exclu et ${POIDS_MAX} kg.`;
   }
   return null;
 }

@@ -28,8 +28,8 @@ const plusRecentEnPremier = (a, b) => Date.parse(b.timestamp) - Date.parse(a.tim
 
 export function createMeasuresService({ hivesService, measuresRepository }) {
   return {
-    listMeasures(hiveId, { limit, offset } = {}) {
-      const hive = hivesService.getHive(hiveId);
+    async listMeasures(hiveId, { limit, offset } = {}) {
+      const hive = await hivesService.getHive(hiveId);
       const page = { limit: lireLimit(limit), offset: lireOffset(offset) };
       const items = measuresRepository
         .findByHive(hive.id)
@@ -38,8 +38,8 @@ export function createMeasuresService({ hivesService, measuresRepository }) {
       return { items, ...page };
     },
 
-    addMeasure(hiveId, corps = {}) {
-      const hive = hivesService.getHive(hiveId);
+    async addMeasure(hiveId, corps = {}) {
+      const hive = await hivesService.getHive(hiveId);
       const detail = validerMesure(corps);
       if (detail) throw new ValidationError(detail);
       return measuresRepository.add({ hive_id: hive.id, timestamp: corps.timestamp, weight_kg: corps.weight_kg });

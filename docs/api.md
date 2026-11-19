@@ -154,7 +154,7 @@ Ajoute une mesure à une ruche.
 ```
 
 - `timestamp` : date ISO 8601 de la trame, **jamais** l'heure de réception. Obligatoire.
-- `weight_kg` : nombre. Obligatoire.
+- `weight_kg` : nombre strictement positif, au plus 200 kg (poids physique d'une ruche). Obligatoire.
 
 **201**
 

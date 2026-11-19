@@ -4,12 +4,12 @@ import { NotFoundError } from "../errors.js";
 
 export function createHivesService({ hivesRepository }) {
   return {
-    listHives({ siteId } = {}) {
+    async listHives({ siteId } = {}) {
       const hives = hivesRepository.findAll();
       return siteId ? hives.filter((hive) => hive.site_id === siteId) : hives;
     },
 
-    getHive(id) {
+    async getHive(id) {
       const hive = hivesRepository.findById(id);
       if (!hive) throw new NotFoundError(`Aucune ruche ne porte l'identifiant ${id}.`);
       return hive;

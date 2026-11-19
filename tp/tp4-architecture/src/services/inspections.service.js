@@ -7,13 +7,13 @@ const plusRecentEnPremier = (a, b) => Date.parse(b.inspected_at) - Date.parse(a.
 
 export function createInspectionsService({ hivesService, inspectionsRepository }) {
   return {
-    listInspections(hiveId) {
-      const hive = hivesService.getHive(hiveId);
+    async listInspections(hiveId) {
+      const hive = await hivesService.getHive(hiveId);
       return { items: inspectionsRepository.findByHive(hive.id).sort(plusRecentEnPremier) };
     },
 
-    addInspection(hiveId, corps = {}) {
-      const hive = hivesService.getHive(hiveId);
+    async addInspection(hiveId, corps = {}) {
+      const hive = await hivesService.getHive(hiveId);
       const detail = validerInspection(corps);
       if (detail) throw new ValidationError(detail);
       return inspectionsRepository.add({
