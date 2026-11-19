@@ -31,6 +31,20 @@ app.get("/api/hives/:id", (req, res) => {
   res.json(hive);
 });
 
+app.post("/api/hives/:id/measures", (req, res) => {
+  const hive = hives.find((h) => h.id === req.params.id);
+  if (!hive) {
+    return res.status(404).json({ detail: `Aucune ruche ne porte l'identifiant ${req.params.id}.` });
+  }
+  const mesure = {
+    hive_id: hive.id,
+    measured_at: req.body.timestamp,
+    weight_kg: req.body.weight_kg,
+  };
+  measures.push(mesure);
+  res.status(201).json(mesure);
+});
+
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
