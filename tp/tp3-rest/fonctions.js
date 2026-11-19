@@ -5,7 +5,7 @@ import hives from "../../data/hives.json" with { type: "json" };
 
 export { hives };
 
-export const measures = readFileSync(new URL("../../data/mesures-SN-CASA-2026-10-31_30j_1.ndjson", import.meta.url), "utf8")
+export const measures = readFileSync(new URL("../../data/mesures-SN-CASA-2026-10-31_30j.ndjson", import.meta.url), "utf8")
   .split("\n")
   .filter((ligne) => ligne.trim())
   .map((ligne) => JSON.parse(ligne))
