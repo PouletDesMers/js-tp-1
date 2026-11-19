@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "TPJS",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:4000"
+    }
+  ],
+  "item": [
+    {
+      "name": "TP1",
+      "item": [
+        {
+          "name": "POST /import/bloquant",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/import/bloquant",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "import",
+                "bloquant"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /import/flux",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/import/flux",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "import",
+                "flux"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "TP2",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/health",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/hives",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/hives?site_id=SN-CASA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives?site_id=SN-CASA",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ],
+              "query": [
+                {
+                  "key": "site_id",
+                  "value": "SN-CASA"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/hives/SN-CASA-001",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/hives/SN-CASA-999 (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-999",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/hives/SN-CASA-001/measures",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/measures",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "measures"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestamp\": \"2026-10-31T12:00:00Z\",\n  \"weight_kg\": 36.84\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
