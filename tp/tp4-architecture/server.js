@@ -1,12 +1,10 @@
-// Démarrage : le seul endroit qui choisit le stockage et le port.
-// Demain, PostgreSQL : on remplace ces trois fabriques, app.js ne change pas.
+// Démarrage : la seule ligne qui connaît le stockage et le port.
 
 import { createApp } from "./src/app.js";
+import { config } from "./src/config.js";
 import { createHivesRepository } from "./src/repositories/hives.repository.js";
 import { createMeasuresRepository } from "./src/repositories/measures.repository.js";
 import { createInspectionsRepository } from "./src/repositories/inspections.repository.js";
-
-const PORT = 4000;
 
 const app = createApp({
   hivesRepository: createHivesRepository(),
@@ -14,6 +12,6 @@ const app = createApp({
   inspectionsRepository: createInspectionsRepository(),
 });
 
-app.listen(PORT, () => {
-  console.log(`API sur http://localhost:${PORT}`);
+app.listen(config.port, () => {
+  console.log(`API sur http://localhost:${config.port} (${config.env})`);
 });
