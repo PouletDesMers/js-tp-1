@@ -6,7 +6,7 @@ API HTTP du socle backend Queen Bee. Les données viennent de PostgreSQL (base d
 
 ## Conventions
 
-- Base : `http://localhost:4000`, préfixe `/api`, **pas de version** dans le chemin.
+- Base : `http://localhost:3000`, préfixe `/api`, **pas de version** dans le chemin.
 - Corps et réponses en JSON UTF-8 (`Content-Type: application/json`).
 - Les identifiants sont des chaînes : `SN-CASA-001` (ruche), UUID (inspection).
 - Ressources au pluriel, jamais de verbe dans le chemin.
@@ -33,15 +33,25 @@ Toutes les erreurs, **y compris route inconnue et JSON mal formé**, utilisent l
 
 | Code | `title` | Quand |
 | --- | --- | --- |
-| 400 | `Paramètre invalide` | `limit` ou `offset` hors bornes, non entier |
-| 400 | `Données invalides` | corps incomplet ou champ de type inattendu |
-| 400 | `Corps JSON invalide` | corps annoncé JSON mais illisible |
+| 400 | `Données invalides` | corps ou paramètres refusés par un schéma Joi |
+| 400 | `Données invalides` | corps annoncé JSON mais illisible |
 | 404 | `Ressource introuvable` | ruche inconnue |
 | 404 | `Route inconnue` | verbe ou chemin inexistant |
+| 409 | `Conflit` | la ressource existe déjà (clé primaire ou contrainte d'unicité) |
+| 413 | `Contenu trop volumineux` | corps de plus de 1 Mo |
 | 500 | `Erreur interne` | erreur inattendue du serveur |
 
-Une erreur ne contient **jamais** de trace de pile ni de message interne : le détail technique reste
-dans les journaux du serveur.
+Une erreur ne contient **jamais** de trace de pile, de message PostgreSQL ni de requête SQL : le détail
+technique reste dans les journaux du serveur.
+
+### Validation
+
+Les corps et les paramètres de requête sont validés par **Joi** avant d'atteindre les services
+(`src/validators/schemas.js`, intergiciel `validate`). Trois conséquences pour le client :
+
+- toutes les erreurs sont renvoyées **d'un coup**, séparées par un retour à la ligne dans `detail` ;
+- un champ non déclaré par le schéma est refusé (`author_id n'est pas un champ autorisé.`) ;
+- les messages sont en français et nomment le champ fautif (`weight_kg est obligatoire.`).
 
 ---
 
@@ -68,10 +78,10 @@ Liste des ruches.
 **200**
 
 ```json
-{
-    { "id": "SN-CASA-001", "site_id": "SN-CASA", "status": "active" },
+[
+  { "id": "SN-CASA-001", "site_id": "SN-CASA", "status": "active" },
   { "id": "SN-CASA-002", "site_id": "SN-CASA", "status": "active" }
-}
+]
 ```
 
 ---
@@ -136,9 +146,9 @@ Historique des mesures d'une ruche, **de la plus récente à la plus ancienne**.
 ```json
 {
   "type": "about:blank",
-  "title": "Paramètre invalide",
+  "title": "Données invalides",
   "status": 400,
-  "detail": "limit doit être un entier de 1 à 500."
+  "detail": "limit doit être supérieur ou égal à 1."
 }
 ```
 
@@ -157,7 +167,7 @@ Ajoute une mesure à une ruche.
 ```
 
 - `timestamp` : date ISO 8601 de la trame, **jamais** l'heure de réception. Obligatoire.
-- `weight_kg` : nombre strictement positif, au plus 200 kg (poids physique d'une ruche). Obligatoire.
+- `weight_kg` : nombre strictement positif, au plus 150 kg (poids physique d'une ruche). Obligatoire.
 
 **201**
 
@@ -165,14 +175,26 @@ Ajoute une mesure à une ruche.
 { "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T12:00:00.000Z", "weight_kg": 36.84, "site_id": "SN-CASA" }
 ```
 
-**400** — corps incomplet.
+**400** — corps incomplet : les deux manques sont signalés ensemble.
 
 ```json
 {
   "type": "about:blank",
   "title": "Données invalides",
   "status": 400,
-  "detail": "timestamp (date ISO 8601) et weight_kg (nombre) sont obligatoires."
+  "detail": "timestamp est obligatoire.\nweight_kg est obligatoire."
+}
+```
+
+**409** — cette mesure existe déjà à cet horodatage pour cette ruche (clé primaire
+`(hive_id, measured_at)`).
+
+```json
+{
+  "type": "about:blank",
+  "title": "Conflit",
+  "status": 409,
+  "detail": "Cette ressource existe déjà."
 }
 ```
 
@@ -223,10 +245,10 @@ l'inspection est créée hors connexion, avant tout appel au serveur.
 ```
 
 - `id` : UUID, obligatoire.
-- `inspected_at` : date ISO 8601, obligatoire.
-- `queen_present` : booléen, obligatoire.
+- `inspected_at` : date ISO 8601, obligatoire, **jamais dans le futur**.
+- `queen_present` : booléen ou `null`, facultatif.
 - `colony_status` : `forte`, `normale`, `faible` ou `morte`, obligatoire.
-- `observations` : texte libre, facultatif (`""` par défaut).
+- `observations` : texte libre de 2 000 caractères au plus, facultatif (`""` par défaut).
 
 **201**
 
@@ -241,15 +263,17 @@ l'inspection est créée hors connexion, avant tout appel au serveur.
 }
 ```
 
-**400** — champ manquant ou invalide, tous les problèmes listés dans `detail`.
+**400** — champ manquant, invalide ou inconnu ; tous les problèmes sont listés dans `detail`.
 
 ```json
 {
   "type": "about:blank",
   "title": "Données invalides",
   "status": 400,
-  "detail": "id doit être un UUID ; colony_status doit valoir forte, normale, faible, morte"
+  "detail": "id doit être un UUID.\nauthor_id n'est pas un champ autorisé."
 }
 ```
+
+**409** — cet UUID d'inspection est déjà enregistré.
 
 **404** — ruche inconnue.

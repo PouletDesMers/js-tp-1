@@ -5,7 +5,7 @@ API HTTP du socle backend Queen Bee (jour 1). Les données sont **en mémoire** 
 
 ## Conventions
 
-- Base : `http://localhost:4000`, préfixe `/api`, **pas de version** dans le chemin.
+- Base : `http://localhost:3000`, préfixe `/api`, **pas de version** dans le chemin.
 - Corps et réponses en JSON UTF-8 (`Content-Type: application/json`).
 - Les identifiants sont des chaînes : `SN-CASA-001` (ruche), UUID (inspection).
 - Ressources au pluriel, jamais de verbe dans le chemin.

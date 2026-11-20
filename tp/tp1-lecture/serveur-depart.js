@@ -59,6 +59,6 @@ app.post("/import/flux", async (req, res) => {
   });
 });
 
-app.listen(4000, () => {
-  console.log(`Serveur du TP 1 sur http://localhost:4000, fichier : ${FICHIER}`);
+app.listen(3000, () => {
+  console.log(`Serveur du TP 1 sur http://localhost:3000, fichier : ${FICHIER}`);
 });

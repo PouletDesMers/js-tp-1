@@ -5,7 +5,7 @@
 //   node tp/tp1-lecture/sonde.js bloquant
 //   node tp/tp1-lecture/sonde.js flux
 
-const BASE = "http://localhost:4000";
+const BASE = "http://localhost:3000";
 const mode = process.argv[2] ?? "bloquant";
 
 if (mode !== "bloquant" && mode !== "flux") {

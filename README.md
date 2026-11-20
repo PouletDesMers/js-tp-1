@@ -8,7 +8,7 @@ Fil rouge du module Backend Node.js : le socle d'une API Express pour les ruches
 cp .env-example .env        # puis choisir un mot de passe
 docker compose up -d        # PostgreSQL + jeu de données (30 s à 1 min au premier lancement)
 npm install
-npm run dev                 # API Queen Bee sur http://localhost:4000
+npm run dev                 # API Queen Bee sur http://localhost:3000
 ```
 
 Vérification : `docker compose exec db psql -U queenbee -d queenbee -c "SELECT count(*) FROM hives;"` → 400.

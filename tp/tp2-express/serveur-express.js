@@ -55,6 +55,6 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.listen(4000, () => {
-  console.log("API sur http://localhost:4000");
+app.listen(3000, () => {
+  console.log("API sur http://localhost:3000");
 });
