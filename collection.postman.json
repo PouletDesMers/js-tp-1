@@ -1,12 +1,53 @@
 {
   "info": {
     "name": "TPJS",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection du fil rouge Queen Bee.\n\nDepuis le TP 7, toutes les routes `/api/hives` exigent un jeton : envoyez d'abord une requête\n« Connexion » du dossier **TP7 — JWT**. Elle remplit la variable `token`, utilisée par l'\nautorisation Bearer de la collection (les requêtes en « Inherit auth from parent » en héritent).\n\nVariables : `base`, `token` (dernier compte connecté), `token_admin`, `token_coord`,\n`token_api1`, `refresh_token`, `token_falsifie`."
   },
   "variable": [
     {
       "key": "base",
       "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_coord",
+      "value": ""
+    },
+    {
+      "key": "token_api1",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "token_falsifie",
+      "value": ""
+    },
+    {
+      "key": "user_id_admin",
+      "value": ""
+    },
+    {
+      "key": "user_id_coord",
+      "value": ""
+    },
+    {
+      "key": "user_id_api1",
+      "value": ""
+    },
+    {
+      "key": "detail_mauvais_mdp",
+      "value": ""
     }
   ],
   "item": [
@@ -333,6 +374,1091 @@
           }
         }
       ]
+    },
+    {
+      "name": "TP7 — JWT",
+      "description": "Envoie d'abord une requête « Connexion » : elle copie le jeton dans la variable de collection\n`token`, que toutes les requêtes en « Inherit auth from parent » utilisent.\n\nLes requêtes qui testent un rôle précis portent leur propre Bearer (`token_admin`,\n`token_coord`, `token_api1`) : elles ne dépendent pas de la dernière connexion envoyée.",
+      "item": [
+        {
+          "name": "Connexion — admin",
+          "description": "Compte admin : il voit les 400 ruches et peut créer des comptes.\nEnregistre `token`, `token_admin`, `refresh_token` et `user_id_admin`.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@queenbee.test\",\n  \"password\": \"QueenBee2026!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 : jetons renvoyés\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().token_type).to.eql(\"Bearer\");",
+                  "});",
+                  "const corps = pm.response.json();",
+                  "pm.collectionVariables.set(\"token\", corps.access_token);",
+                  "pm.collectionVariables.set(\"token_admin\", corps.access_token);",
+                  "pm.collectionVariables.set(\"refresh_token\", corps.refresh_token);",
+                  "// Le contenu du jeton est lisible : on y récupère l'utilisateur (sub) pour les tests suivants.",
+                  "try {",
+                  "  const charge = JSON.parse(Buffer.from(corps.access_token.split(\".\")[1], \"base64url\").toString());",
+                  "  pm.collectionVariables.set(\"user_id_admin\", charge.sub);",
+                  "} catch (e) {",
+                  "  console.warn(\"Jeton non décodable :\", e.message);",
+                  "}",
+                  "console.log(\"Jeton de \" + pm.response.json().access_token.slice(0, 24) + \"…\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Connexion — coordinateur SN-CASA",
+          "description": "Compte coordinateur : il ne voit que les 50 ruches de SN-CASA.\nEnregistre `token`, `token_coord`, `refresh_token` et `user_id_coord`.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"coord.sn-casa@queenbee.test\",\n  \"password\": \"QueenBee2026!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 : jetons renvoyés\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().token_type).to.eql(\"Bearer\");",
+                  "});",
+                  "const corps = pm.response.json();",
+                  "pm.collectionVariables.set(\"token\", corps.access_token);",
+                  "pm.collectionVariables.set(\"token_coord\", corps.access_token);",
+                  "pm.collectionVariables.set(\"refresh_token\", corps.refresh_token);",
+                  "// Le contenu du jeton est lisible : on y récupère l'utilisateur (sub) pour les tests suivants.",
+                  "try {",
+                  "  const charge = JSON.parse(Buffer.from(corps.access_token.split(\".\")[1], \"base64url\").toString());",
+                  "  pm.collectionVariables.set(\"user_id_coord\", charge.sub);",
+                  "} catch (e) {",
+                  "  console.warn(\"Jeton non décodable :\", e.message);",
+                  "}",
+                  "console.log(\"Jeton de \" + pm.response.json().access_token.slice(0, 24) + \"…\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Connexion — apiculteur api1 SN-CASA",
+          "description": "Compte apiculteur : il ne voit que ses 10 ruches, SN-CASA-001 à SN-CASA-010.\nEnregistre `token`, `token_api1`, `refresh_token` et `user_id_api1`.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"api1.sn-casa@queenbee.test\",\n  \"password\": \"QueenBee2026!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 : jetons renvoyés\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().token_type).to.eql(\"Bearer\");",
+                  "});",
+                  "const corps = pm.response.json();",
+                  "pm.collectionVariables.set(\"token\", corps.access_token);",
+                  "pm.collectionVariables.set(\"token_api1\", corps.access_token);",
+                  "pm.collectionVariables.set(\"refresh_token\", corps.refresh_token);",
+                  "// Le contenu du jeton est lisible : on y récupère l'utilisateur (sub) pour les tests suivants.",
+                  "try {",
+                  "  const charge = JSON.parse(Buffer.from(corps.access_token.split(\".\")[1], \"base64url\").toString());",
+                  "  pm.collectionVariables.set(\"user_id_api1\", charge.sub);",
+                  "} catch (e) {",
+                  "  console.warn(\"Jeton non décodable :\", e.message);",
+                  "}",
+                  "console.log(\"Jeton de \" + pm.response.json().access_token.slice(0, 24) + \"…\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Connexion — mauvais mot de passe (401)",
+          "description": "Le message doit être identique à celui de l'adresse inconnue : un attaquant ne peut pas deviner quelles adresses existent.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@queenbee.test\",\n  \"password\": \"faux\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"message générique\", () => {",
+                  "  pm.expect(pm.response.json().detail).to.eql(\"Adresse e-mail ou mot de passe incorrect.\");",
+                  "});",
+                  "pm.collectionVariables.set(\"detail_mauvais_mdp\", pm.response.json().detail);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Connexion — adresse inconnue (401)",
+          "description": "Même code, même `detail` que la requête précédente.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"personne@queenbee.test\",\n  \"password\": \"faux\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"même message qu'un mauvais mot de passe\", () => {",
+                  "  pm.expect(pm.response.json().detail).to.eql(pm.collectionVariables.get(\"detail_mauvais_mdp\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/auth/me (apiculteur)",
+          "description": "Renvoie l'utilisateur du jeton, tel qu'il a été signé au moment de la connexion.",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_api1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/auth/me",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"rôle et site du jeton\", () => {",
+                  "  const moi = pm.response.json();",
+                  "  pm.expect(moi.role).to.eql(\"apiculteur\");",
+                  "  pm.expect(moi.site_id).to.eql(\"SN-CASA\");",
+                  "  pm.expect(Object.keys(moi).sort()).to.eql([\"id\", \"role\", \"site_id\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/refresh",
+          "description": "Renvoie une paire neuve à partir du `refresh_token` enregistré par la dernière connexion.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/refresh",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.test(\"refresh_token connu\", () => {",
+                  "  pm.expect(pm.collectionVariables.get(\"refresh_token\"), \"envoyez d'abord une Connexion\").to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 : nouvelle paire\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().token_type).to.eql(\"Bearer\");",
+                  "});",
+                  "pm.collectionVariables.set(\"token\", pm.response.json().access_token);",
+                  "pm.collectionVariables.set(\"refresh_token\", pm.response.json().refresh_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/register — admin (201)",
+          "description": "Réservé à l'administrateur. L'adresse est unique à chaque envoi grâce à {{$guid}} ; `site_id` est interdit pour le rôle gestionnaire.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"gestion-{{$guid}}@queenbee.test\",\n  \"password\": \"MotDePasseLong1!\",\n  \"role\": \"gestionnaire\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/register",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"aucune empreinte dans la réponse\", () => {",
+                  "  pm.expect(pm.response.json()).to.not.have.property(\"password_hash\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/register — sans jeton (401)",
+          "description": "L'inscription n'est jamais publique.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"libre@queenbee.test\",\n  \"password\": \"MotDePasseLong1!\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/register",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"en-tête WWW-Authenticate\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"WWW-Authenticate\")).to.eql('Bearer realm=\"queenbee\"');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/register — apiculteur (403)",
+          "description": "Rôle insuffisant : seuls les administrateurs créent des comptes.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_api1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"libre2@queenbee.test\",\n  \"password\": \"MotDePasseLong1!\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/auth/register",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"rôles attendus annoncés\", () => {",
+                  "  pm.expect(pm.response.json().detail).to.eql(\"Action réservée aux rôles suivants : admin.\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives — admin (400 ruches)",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 et 400 ruches\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json()).to.have.lengthOf(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives — coordinateur (50 ruches de SN-CASA)",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_coord}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200 et 50 ruches\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json()).to.have.lengthOf(50);",
+                  "});",
+                  "pm.test(\"toutes de son site\", () => {",
+                  "  pm.expect(pm.response.json().every((h) => h.site_id === \"SN-CASA\")).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives — apiculteur (10 ruches)",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_api1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200, de SN-CASA-001 à SN-CASA-010\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const ruches = pm.response.json();",
+                  "  pm.expect(ruches).to.have.lengthOf(10);",
+                  "  pm.expect([ruches[0].id, ruches[9].id]).to.eql([\"SN-CASA-001\", \"SN-CASA-010\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives — sans jeton (401)",
+          "description": "Sans en-tête `Authorization`, la réponse porte l'en-tête `WWW-Authenticate` exigé par la RFC 6750.",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"WWW-Authenticate: Bearer realm=\\\"queenbee\\\"\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"WWW-Authenticate\")).to.eql('Bearer realm=\"queenbee\"');",
+                  "});",
+                  "pm.test(\"titre RFC 9457\", () => {",
+                  "  pm.expect(pm.response.json().title).to.eql(\"Authentification requise\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives/SN-CASA-011 — apiculteur (403)",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_api1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-011",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-011"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"detail\", () => {",
+                  "  pm.expect(pm.response.json().detail).to.eql(\"Vous n'avez pas accès à la ruche SN-CASA-011.\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives/XX-NOPE-999 — apiculteur (404)",
+          "description": "L'existence est vérifiée avant les droits : une ruche inconnue donne 404, pas 403.",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_api1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives/XX-NOPE-999",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "XX-NOPE-999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"404\", () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives?site_id=CI-AGBO — coordinateur (403)",
+          "description": "Un coordinateur ne peut pas demander un autre site que le sien.",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_coord}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives?site_id=CI-AGBO",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives?site_id=CI-AGBO"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"detail\", () => {",
+                  "  pm.expect(pm.response.json().detail).to.eql(\"Vous n'avez pas accès au site CI-AGBO.\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/hives/SN-CASA-001/measures — apiculteur (403)",
+          "description": "Seul l'admin envoie des mesures : il simule la passerelle.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_api1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestamp\": \"2026-11-03T09:00:00Z\",\n  \"weight_kg\": 36.8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/measures",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "measures"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"rôle attendu annoncé\", () => {",
+                  "  pm.expect(pm.response.json().detail).to.eql(\"Action réservée aux rôles suivants : admin.\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/hives/SN-CASA-001/inspections — apiculteur (201)",
+          "description": "Une inspection est saisie sur le terrain : l'auteur enregistré est celui du jeton, jamais le corps.",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_api1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"inspected_at\": \"2026-11-02T09:00:00Z\",\n  \"colony_status\": \"forte\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/api/hives/SN-CASA-001/inspections",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives",
+                "SN-CASA-001",
+                "inspections"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"author_id renseigné\", () => {",
+                  "  pm.expect(pm.response.json().author_id).to.match(/^[0-9a-f-]{36}$/);",
+                  "});",
+                  "const moi = pm.collectionVariables.get(\"user_id_api1\");",
+                  "if (moi) {",
+                  "  pm.test(\"author_id = apiculteur connecté\", () => {",
+                  "    pm.expect(pm.response.json().author_id).to.eql(moi);",
+                  "  });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives — jeton falsifié (401)",
+          "description": "Le script de pré-requête recopie le jeton de l'apiculteur en changeant son rôle en `admin` : la signature ne correspond plus. Si le script ne tourne pas chez toi, copie `token_api1` dans la variable `token_falsifie` et change une lettre du segment du milieu.",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_falsifie}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const jeton = pm.collectionVariables.get(\"token_api1\") || \"\";",
+                  "let falsifie = \"jeton.falsifie.express\"; // suffit à obtenir 401 si aucun jeton n'est connu",
+                  "try {",
+                  "  const [entete, charge, signature] = jeton.split(\".\");",
+                  "  const contenu = JSON.parse(Buffer.from(charge, \"base64url\").toString());",
+                  "  contenu.role = \"admin\";",
+                  "  falsifie = entete + \".\" + Buffer.from(JSON.stringify(contenu)).toString(\"base64url\") + \".\" + signature;",
+                  "} catch (e) {",
+                  "  console.warn(\"Aucun jeton à falsifier : envoyez d'abord « Connexion — apiculteur api1 SN-CASA ».\");",
+                  "}",
+                  "pm.collectionVariables.set(\"token_falsifie\", falsifie);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"detail\", () => {",
+                  "  pm.expect(pm.response.json().detail).to.eql(\"Jeton d'accès invalide ou expiré.\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/hives — jeton expiré (401)",
+          "description": "À faire à la main, une fois :\n1. ajouter `JWT_ACCESS_TTL=10s` dans `.env` et redémarrer le serveur ;\n2. envoyer « Connexion — apiculteur api1 SN-CASA » ;\n3. attendre 11 secondes, puis envoyer cette requête → 401 « Jeton d'accès invalide ou expiré. » ;\n4. retirer la ligne de `.env` et redémarrer.\n\nCette requête utilise le jeton courant (`{{token}}`), donc celui de la dernière connexion.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/api/hives",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "hives"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const statut = pm.response.code;",
+                  "if (statut === 401) {",
+                  "  pm.test(\"401 : jeton expiré\", () => {",
+                  "    pm.expect(pm.response.json().detail).to.eql(\"Jeton d'accès invalide ou expiré.\");",
+                  "  });",
+                  "} else {",
+                  "  pm.test(\"jeton encore valide (\" + statut + \") : refaites l'essai avec JWT_ACCESS_TTL=10s\", () => {});",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  }
 }
