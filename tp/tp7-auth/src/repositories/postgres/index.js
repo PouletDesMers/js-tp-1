@@ -1,14 +1,16 @@
-// Les trois repositories PostgreSQL, assemblés sous les mêmes noms que la version mémoire :
-// server.js choisit le stockage, app.js reçoit le même objet dans les deux cas.
+// Les repositories PostgreSQL, assemblés sous un seul objet : server.js les crée,
+// app.js reçoit le même objet et ne sait pas d'où viennent les données.
 
 import { createHivesRepository } from "./hives.repository.js";
 import { createMeasuresRepository } from "./measures.repository.js";
 import { createInspectionsRepository } from "./inspections.repository.js";
+import { createUsersRepository } from "./users.repository.js";
 
 export function createPostgresRepositories(pool) {
   return {
     hivesRepository: createHivesRepository(pool),
     measuresRepository: createMeasuresRepository(pool),
     inspectionsRepository: createInspectionsRepository(pool),
+    usersRepository: createUsersRepository(pool),
   };
 }

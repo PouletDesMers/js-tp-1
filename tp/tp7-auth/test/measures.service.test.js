@@ -1,6 +1,4 @@
-// Test de la règle métier qui a besoin de la ruche : sans base, sans serveur, sans port.
-// Les types et les plages sont testés dans validators.test.js : le service ne les voit plus.
-// Lancement : npm test   (node --test)
+// Test de la règle métier qui a besoin de la ruche et de l'utilisateur : sans base, sans serveur.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -8,11 +6,12 @@ import assert from "node:assert/strict";
 import { NotFoundError, ValidationError } from "../src/errors.js";
 import { createMeasuresService } from "../src/services/measures.service.js";
 
+const admin = { id: "u-admin", role: "admin", site_id: null };
 const mesureValide = { timestamp: new Date("2026-10-31T12:00:00Z"), weight_kg: 36.84 };
 
 function createFakeHivesService() {
   return {
-    async getHive(id) {
+    async getHive(user, id) {
       if (id !== "SN-CASA-001") throw new NotFoundError(`Aucune ruche ne porte l'identifiant ${id}.`);
       return { id };
     },
@@ -43,14 +42,14 @@ function createService() {
 test("refuse une ruche inconnue", async () => {
   const { service } = createService();
 
-  await assert.rejects(() => service.addMeasure("SN-CASA-999", mesureValide), NotFoundError);
+  await assert.rejects(() => service.addMeasure(admin, "SN-CASA-999", mesureValide), NotFoundError);
 });
 
 test("refuse une trame qui désigne une autre ruche que le chemin", async () => {
   const { service, measuresRepository } = createService();
 
   await assert.rejects(
-    () => service.addMeasure("SN-CASA-001", { ...mesureValide, hive_id: "SN-CASA-002" }),
+    () => service.addMeasure(admin, "SN-CASA-001", { ...mesureValide, hive_id: "SN-CASA-002" }),
     ValidationError,
   );
   assert.equal(measuresRepository.added.length, 0); // rien n'a été enregistré
@@ -59,7 +58,7 @@ test("refuse une trame qui désigne une autre ruche que le chemin", async () => 
 test("enregistre une mesure valide", async () => {
   const { service, measuresRepository } = createService();
 
-  const mesure = await service.addMeasure("SN-CASA-001", mesureValide);
+  const mesure = await service.addMeasure(admin, "SN-CASA-001", mesureValide);
 
   assert.deepEqual(mesure, { hive_id: "SN-CASA-001", ...mesureValide });
   assert.equal(measuresRepository.added.length, 1);

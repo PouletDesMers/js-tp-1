@@ -16,7 +16,7 @@
 
 import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
-import { createPool } from "../tp/tp6-validate/src/db.js";
+import { createPool } from "../tp/tp7-auth/src/db.js";
 
 const args = process.argv.slice(2);
 const mode = args.find((a) => a === "ligne" || a === "lot");

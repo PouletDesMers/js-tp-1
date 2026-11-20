@@ -6,7 +6,13 @@ import assert from "node:assert/strict";
 
 import { ValidationError } from "../src/errors.js";
 import { validate } from "../src/middlewares/validate.js";
-import { hivesQuerySchema, inspectionSchema, measureSchema, paginationSchema } from "../src/validators/schemas.js";
+import {
+  hivesQuerySchema,
+  inspectionSchema,
+  measureSchema,
+  paginationSchema,
+  registerSchema,
+} from "../src/validators/schemas.js";
 
 function run(schema, data, source = "body") {
   const req = { [source]: data };
@@ -65,5 +71,28 @@ test("ne garde que le site dans la requête des ruches", () => {
   assert.deepEqual(run(hivesQuerySchema, {}, "query"), {});
   assert.throws(() => run(hivesQuerySchema, { site: "SN-CASA" }, "query"), {
     message: "site n'est pas un champ autorisé.",
+  });
+});
+
+test("l'inscription lie site_id au rôle", () => {
+  const base = { email: "test-blocage@queenbee.test", password: "MotDePasseLong1!" };
+
+  assert.throws(() => run(registerSchema, { ...base, role: "coordinateur" }), {
+    message: "site_id est obligatoire.",
+  });
+  assert.throws(() => run(registerSchema, { ...base, role: "admin", site_id: "SN-CASA" }), {
+    message: "site_id n'est pas autorisé.",
+  });
+  assert.deepEqual(run(registerSchema, { ...base, role: "coordinateur", site_id: "SN-CASA" }), {
+    ...base,
+    role: "coordinateur",
+    site_id: "SN-CASA",
+  });
+});
+
+test("l'inscription accepte un domaine en .test et refuse un mot de passe trop court", () => {
+  assert.equal(run(registerSchema, { email: "a@b.test", password: "MotDePasseLong1!", role: "admin" }).email, "a@b.test");
+  assert.throws(() => run(registerSchema, { email: "a@b.test", password: "court", role: "admin" }), {
+    message: "password doit contenir au moins 12 caractères.",
   });
 });

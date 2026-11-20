@@ -1,8 +1,8 @@
 # Contrat d'interface — API Queen Bee
 
-API HTTP du socle backend Queen Bee. Les données viennent de PostgreSQL (base du jour 1) ; avec
-`STORAGE=memory`, l'API repart des ruches de `data/hives.json` et du fichier de trames
-`data/mesures-SN-CASA-2026-10-31.ndjson`.
+API HTTP du socle backend Queen Bee. Les données viennent de PostgreSQL (base du jour 1). Le mode
+mémoire du TP 5 a disparu au TP 7 : les comptes n'existent qu'en base, et toute requête sur les
+ruches suppose un jeton d'accès.
 
 ## Conventions
 
@@ -11,6 +11,25 @@ API HTTP du socle backend Queen Bee. Les données viennent de PostgreSQL (base d
 - Les identifiants sont des chaînes : `SN-CASA-001` (ruche), UUID (inspection).
 - Ressources au pluriel, jamais de verbe dans le chemin.
 - Les paramètres de chemin et de requête arrivent en chaîne ; les nombres sont validés côté serveur.
+
+## Authentification
+
+`POST /api/auth/login` avec `{ "email", "password" }` renvoie une paire de jetons
+(`token_type`, `access_token`, `refresh_token`) ; `POST /api/auth/refresh` en renvoie une neuve à
+partir de `{ "refresh_token" }`. `POST /api/auth/register` est réservé à l'administrateur et
+`GET /api/auth/me` renvoie l'utilisateur du jeton.
+
+Toutes les routes `/api/hives` exigent l'en-tête `Authorization: Bearer <access_token>`. Un 401
+porte l'en-tête `WWW-Authenticate: Bearer realm="queenbee"`.
+
+| Rôle | Ruches visibles | Peut envoyer |
+| --- | --- | --- |
+| `admin` | toutes | des mesures (il simule la passerelle), des comptes |
+| `gestionnaire` | toutes | rien |
+| `coordinateur` | celles de son site | des inspections |
+| `apiculteur` | les siennes (`owner_id`) | des inspections |
+
+Une ruche inexistante renvoie 404 ; une ruche existante mais hors de vos droits renvoie 403.
 
 ## Erreurs — RFC 9457
 
@@ -35,6 +54,8 @@ Toutes les erreurs, **y compris route inconnue et JSON mal formé**, utilisent l
 | --- | --- | --- |
 | 400 | `Données invalides` | corps ou paramètres refusés par un schéma Joi |
 | 400 | `Données invalides` | corps annoncé JSON mais illisible |
+| 401 | `Authentification requise` | jeton absent, invalide, expiré, ou identifiants refusés |
+| 403 | `Accès refusé` | ruche ou site hors de vos droits, ou rôle insuffisant |
 | 404 | `Ressource introuvable` | ruche inconnue |
 | 404 | `Route inconnue` | verbe ou chemin inexistant |
 | 409 | `Conflit` | la ressource existe déjà (clé primaire ou contrainte d'unicité) |

@@ -1,31 +1,31 @@
 // Contrôleur : que dit la requête, que répondre ? Il ne connaît ni repository ni SQL.
-// Il lit req.validated : les données sont déjà converties et validées par les schémas.
+// Il lit req.validated (données déjà converties et validées) et req.user (qui parle).
 // Les erreurs remontent seules (Express 5 transmet les rejets async à l'intergiciel d'erreur).
 
 export function createHivesController({ hivesService, measuresService, inspectionsService }) {
   return {
     async listHives(req, res) {
-      res.json(await hivesService.listHives({ siteId: req.validated.site_id }));
+      res.json(await hivesService.listHives(req.user, req.validated));
     },
 
     async getHive(req, res) {
-      res.json(await hivesService.getHive(req.params.id));
+      res.json(await hivesService.getHive(req.user, req.params.id));
     },
 
     async listMeasures(req, res) {
-      res.json(await measuresService.listMeasures(req.params.id, req.validated));
+      res.json(await measuresService.listMeasures(req.user, req.params.id, req.validated));
     },
 
     async addMeasure(req, res) {
-      res.status(201).json(await measuresService.addMeasure(req.params.id, req.validated));
+      res.status(201).json(await measuresService.addMeasure(req.user, req.params.id, req.validated));
     },
 
     async listInspections(req, res) {
-      res.json(await inspectionsService.listInspections(req.params.id));
+      res.json(await inspectionsService.listInspections(req.user, req.params.id));
     },
 
     async addInspection(req, res) {
-      res.status(201).json(await inspectionsService.addInspection(req.params.id, req.validated));
+      res.status(201).json(await inspectionsService.addInspection(req.user, req.params.id, req.validated));
     },
   };
 }

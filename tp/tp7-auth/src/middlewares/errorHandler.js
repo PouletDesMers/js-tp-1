@@ -7,6 +7,8 @@ import { probleme } from "../problem.js";
 // Un code HTTP, un titre : le corps reste identique pour tous les cas du même code.
 const TITRES = {
   400: "Données invalides",
+  401: "Authentification requise",
+  403: "Accès refusé",
   404: "Ressource introuvable",
   409: "Conflit",
   413: "Contenu trop volumineux",
@@ -20,6 +22,15 @@ export function notFound(req, res) {
 // Quatre paramètres : c'est ce qui déclare l'intergiciel comme gestionnaire d'erreurs.
 export function errorHandler(err, req, res, next) {
   if (err instanceof AppError) {
+    // Journal des requêtes interdites : une ligne par refus, lisible dans le terminal.
+    if (err.status === 401 || err.status === 403) {
+      console.warn(
+        `[accès refusé] ${err.status} ${req.method} ${req.originalUrl} ip=${req.ip} utilisateur=${req.user?.id ?? "-"}`,
+      );
+    }
+    if (err.status === 401) {
+      res.set("WWW-Authenticate", 'Bearer realm="queenbee"'); // schéma attendu (RFC 6750)
+    }
     return probleme(res, err.status, TITRES[err.status] ?? "Erreur", err.message);
   }
   if (err.type === "entity.parse.failed") {
