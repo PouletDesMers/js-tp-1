@@ -12,6 +12,7 @@ import {
   measureSchema,
   paginationSchema,
   registerSchema,
+  syncSchema,
 } from "../src/validators/schemas.js";
 
 function run(schema, data, source = "body") {
@@ -95,4 +96,18 @@ test("l'inscription accepte un domaine en .test et refuse un mot de passe trop c
   assert.throws(() => run(registerSchema, { email: "a@b.test", password: "court", role: "admin" }), {
     message: "password doit contenir au moins 12 caractères.",
   });
+});
+
+// --- Lot de synchronisation (TP 8) ---
+
+test("un lot vide est refusé, et chaque élément porte sa ruche", () => {
+  assert.throws(() => run(syncSchema, { inspections: [] }), {
+    message: "inspections doit contenir au moins 1 élément(s).",
+  });
+  assert.throws(() => run(syncSchema, { inspections: [{ ...inspectionValide }] }), {
+    message: "inspections[0].hive_id est obligatoire.",
+  });
+  const lot = run(syncSchema, { inspections: [{ ...inspectionValide, hive_id: "SN-CASA-001" }] });
+  assert.equal(lot.inspections[0].hive_id, "SN-CASA-001");
+  assert.equal(lot.inspections[0].version, undefined); // création : pas de version
 });

@@ -16,16 +16,20 @@ export function createHivesController({ hivesService, measuresService, inspectio
       res.json(await measuresService.listMeasures(req.user, req.params.id, req.validated));
     },
 
+    // 201 la première fois, 200 au rejeu : la trame n'est pas en double, elle est déjà là.
     async addMeasure(req, res) {
-      res.status(201).json(await measuresService.addMeasure(req.user, req.params.id, req.validated));
+      const { measure, created } = await measuresService.addMeasure(req.user, req.params.id, req.validated);
+      res.status(created ? 201 : 200).json(measure);
     },
 
     async listInspections(req, res) {
       res.json(await inspectionsService.listInspections(req.user, req.params.id));
     },
 
+    // 201 la première fois, 200 au rejeu : l'UUID du client est la clé de l'idempotence.
     async addInspection(req, res) {
-      res.status(201).json(await inspectionsService.addInspection(req.user, req.params.id, req.validated));
+      const { inspection, created } = await inspectionsService.addInspection(req.user, req.params.id, req.validated);
+      res.status(created ? 201 : 200).json(inspection);
     },
   };
 }

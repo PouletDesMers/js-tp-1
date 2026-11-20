@@ -12,8 +12,10 @@ import { createAuthService } from "./services/auth.service.js";
 
 import { createHivesController } from "./controllers/hives.controller.js";
 import { createAuthController } from "./controllers/auth.controller.js";
+import { createInspectionsController } from "./controllers/inspections.controller.js";
 import { createHivesRouter } from "./routes/hives.router.js";
 import { createAuthRouter } from "./routes/auth/auth.router.js";
+import { createInspectionsRouter } from "./routes/inspections/inspections.router.js";
 import { createRequireAuth } from "./middlewares/auth.js";
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 
@@ -36,6 +38,13 @@ export function createApp({ hivesRepository, measuresRepository, inspectionsRepo
   });
   app.use("/api/auth", createAuthRouter({ controller: createAuthController({ authService }), requireAuth }));
   app.use("/api/hives", createHivesRouter({ controller: hivesController, requireAuth }));
+  app.use(
+    "/api/inspections",
+    createInspectionsRouter({
+      controller: createInspectionsController({ inspectionsService }),
+      requireAuth,
+    }),
+  );
 
   app.use(notFound);
   app.use(errorHandler);

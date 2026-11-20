@@ -23,9 +23,11 @@ function createFakeMeasuresRepository() {
   return {
     added,
     findByHive: () => [],
+    // Comme le vrai repository : la mesure relue et le drapeau created.
     add: (mesure) => {
-      added.push(mesure);
-      return mesure;
+      const dejaVu = added.some((m) => m.hive_id === mesure.hive_id && +m.timestamp === +mesure.timestamp);
+      if (!dejaVu) added.push(mesure);
+      return { measure: mesure, created: !dejaVu };
     },
   };
 }
@@ -58,8 +60,21 @@ test("refuse une trame qui désigne une autre ruche que le chemin", async () => 
 test("enregistre une mesure valide", async () => {
   const { service, measuresRepository } = createService();
 
-  const mesure = await service.addMeasure(admin, "SN-CASA-001", mesureValide);
+  const { measure, created } = await service.addMeasure(admin, "SN-CASA-001", mesureValide);
 
-  assert.deepEqual(mesure, { hive_id: "SN-CASA-001", ...mesureValide });
+  assert.equal(created, true);
+  assert.deepEqual(measure, { hive_id: "SN-CASA-001", ...mesureValide });
+  assert.equal(measuresRepository.added.length, 1);
+});
+
+test("rejouer la même mesure ne crée pas de doublon", async () => {
+  const { service, measuresRepository } = createService();
+
+  const premier = await service.addMeasure(admin, "SN-CASA-001", mesureValide);
+  const second = await service.addMeasure(admin, "SN-CASA-001", mesureValide);
+
+  assert.equal(premier.created, true);
+  assert.equal(second.created, false);
+  assert.deepEqual(second.measure, premier.measure); // la ligne relue, pas une nouvelle
   assert.equal(measuresRepository.added.length, 1);
 });

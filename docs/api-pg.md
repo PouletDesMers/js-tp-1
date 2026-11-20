@@ -189,8 +189,9 @@ Ajoute une mesure à une ruche.
 
 - `timestamp` : date ISO 8601 de la trame, **jamais** l'heure de réception. Obligatoire.
 - `weight_kg` : nombre strictement positif, au plus 150 kg (poids physique d'une ruche). Obligatoire.
+- Les autres colonnes de la trame (`temp_internal_c`, `humidity_pct`, `position_lat`…) sont facultatives.
 
-**201**
+**201** — première réception de cette trame.
 
 ```json
 { "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T12:00:00.000Z", "weight_kg": 36.84, "site_id": "SN-CASA" }
@@ -207,20 +208,10 @@ Ajoute une mesure à une ruche.
 }
 ```
 
-**409** — cette mesure existe déjà à cet horodatage pour cette ruche (clé primaire
-`(hive_id, measured_at)`).
-
-```json
-{
-  "type": "about:blank",
-  "title": "Conflit",
-  "status": 409,
-  "detail": "Cette ressource existe déjà."
-}
-```
+**200** — cette mesure existait déjà (clé primaire `(hive_id, measured_at)`) : le corps renvoie la
+ligne enregistrée et rien n'est créé. Rejouer une trame de la passerelle n'est plus une erreur.
 
 **404** — ruche inconnue.
-
 ---
 
 ## GET /api/hives/:id/inspections
@@ -269,20 +260,28 @@ l'inspection est créée hors connexion, avant tout appel au serveur.
 - `inspected_at` : date ISO 8601, obligatoire, **jamais dans le futur**.
 - `queen_present` : booléen ou `null`, facultatif.
 - `colony_status` : `forte`, `normale`, `faible` ou `morte`, obligatoire.
-- `observations` : texte libre de 2 000 caractères au plus, facultatif (`""` par défaut).
+- `observations` : texte libre de 2 000 caractères au plus, facultatif (`null` par défaut).
 
-**201**
+**201** — première réception de cet UUID ; **200** — l'UUID est déjà enregistré pour cette ruche, la
+réponse renvoie la ligne existante (rejeu idempotent).
 
 ```json
 {
   "id": "3f2a9c1e-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
   "hive_id": "SN-CASA-001",
-  "inspected_at": "2026-10-14T09:30:00Z",
+  "author_id": "a304e59d-1ce0-4d9e-84d7-1c2fe1b0b7a0",
+  "inspected_at": "2026-10-14T09:30:00.000Z",
   "queen_present": true,
   "colony_status": "forte",
-  "observations": "Couvain compact."
+  "observations": "Couvain compact.",
+  "version": 1,
+  "created_at": "2026-11-20T15:02:11.204Z",
+  "updated_at": "2026-11-20T15:02:11.204Z"
 }
 ```
+
+`author_id` est celui du jeton, jamais celui du corps. `version` vaut 1 à la création : c'est elle
+qu'un appareil renvoie pour modifier l'inspection (voir `POST /api/inspections/sync`).
 
 **400** — champ manquant, invalide ou inconnu ; tous les problèmes sont listés dans `detail`.
 
@@ -295,6 +294,58 @@ l'inspection est créée hors connexion, avant tout appel au serveur.
 }
 ```
 
-**409** — cet UUID d'inspection est déjà enregistré.
+**409** — cet UUID est déjà enregistré, mais pour **une autre ruche**.
 
 **404** — ruche inconnue.
+
+---
+
+## POST /api/inspections/sync
+
+Envoie en une fois les inspections saisies hors connexion (1 à 500 éléments). Rôles `apiculteur` et
+`coordinateur` uniquement ; chaque élément porte son `hive_id`, et sa `version` quand il modifie une
+inspection déjà synchronisée.
+
+**Corps**
+
+```json
+{
+  "inspections": [
+    {
+      "id": "6f1d2c3a-1b2c-4d5e-8f60-0a1b2c3d4e01",
+      "hive_id": "SN-CASA-001",
+      "inspected_at": "2026-11-02T08:15:00Z",
+      "colony_status": "forte",
+      "queen_present": true,
+      "observations": "Cadres de couvain bien remplis"
+    }
+  ]
+}
+```
+
+**200** — toujours, si le lot est bien formé : le détail est dans chaque résultat.
+
+```json
+{
+  "summary": { "created": 3, "unchanged": 0, "updated": 0, "conflict": 0, "rejected": 1 },
+  "results": [
+    { "id": "6f1d2c3a-1b2c-4d5e-8f60-0a1b2c3d4e01", "status": "created", "version": 1 },
+    {
+      "id": "6f1d2c3a-1b2c-4d5e-8f60-0a1b2c3d4e04",
+      "status": "rejected",
+      "detail": "Vous n'avez pas accès à la ruche SN-CASA-011."
+    }
+  ]
+}
+```
+
+| `status` | Quand | Champs |
+| --- | --- | --- |
+| `created` | pas de `version`, `id` inconnu | `version` |
+| `unchanged` | pas de `version`, `id` déjà reçu pour cette ruche | `version` |
+| `updated` | `version` égale à celle du serveur | `version` (incrémentée) |
+| `conflict` | `version` périmée : le serveur l'emporte, rien n'est écrit | `detail`, `current` |
+| `rejected` | ruche inconnue ou hors droits, `id` pris par une autre ruche | `detail` |
+
+Un élément refusé n'empêche pas les autres. **400** si le lot est vide ou mal formé (plus de 500
+éléments, `hive_id` manquant…), **403** pour les autres rôles.

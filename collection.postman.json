@@ -1210,7 +1210,13 @@
               ],
               "path": [
                 "api",
-                "hives?site_id=CI-AGBO"
+                "hives"
+              ],
+              "query": [
+                {
+                  "key": "site_id",
+                  "value": "CI-AGBO"
+                }
               ]
             }
           },
