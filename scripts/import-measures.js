@@ -16,7 +16,7 @@
 
 import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
-import { createPool } from "../src/db.js";
+import { createPool } from "../tp/tp5-postgres/src/db.js";
 
 const args = process.argv.slice(2);
 const mode = args.find((a) => a === "ligne" || a === "lot");

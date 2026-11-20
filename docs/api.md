@@ -1,7 +1,8 @@
 # Contrat d'interface — API Queen Bee
 
-API HTTP du socle backend Queen Bee (jour 1). Les données sont **en mémoire** : elles proviennent de
-`data/hives.json` et du fichier de trames `data/mesures-SN-CASA-2026-10-31.ndjson`.
+API HTTP du socle backend Queen Bee. Les données viennent de PostgreSQL (base du jour 1) ; avec
+`STORAGE=memory`, l'API repart des ruches de `data/hives.json` et du fichier de trames
+`data/mesures-SN-CASA-2026-10-31.ndjson`.
 
 ## Conventions
 
@@ -120,13 +121,15 @@ Historique des mesures d'une ruche, **de la plus récente à la plus ancienne**.
 ```json
 {
   "items": [
-    { "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T23:45:00Z", "weight_kg": 38.12 },
-    { "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T23:30:00Z", "weight_kg": 38.07 }
+    { "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T23:45:00.000Z", "weight_kg": 36.89, "site_id": "SN-CASA" },
+    { "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T23:30:00.000Z", "weight_kg": 36.81, "site_id": "SN-CASA" }
   ],
   "limit": 50,
   "offset": 0
 }
 ```
+
+`site_id` n'est pas une colonne de `measures` : il vient de `hives`, par jointure.
 
 **400** — `limit` ou `offset` invalide.
 
@@ -159,7 +162,7 @@ Ajoute une mesure à une ruche.
 **201**
 
 ```json
-{ "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T12:00:00Z", "weight_kg": 36.84 }
+{ "hive_id": "SN-CASA-001", "timestamp": "2026-10-31T12:00:00.000Z", "weight_kg": 36.84, "site_id": "SN-CASA" }
 ```
 
 **400** — corps incomplet.
