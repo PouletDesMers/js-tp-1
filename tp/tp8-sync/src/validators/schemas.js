@@ -31,7 +31,8 @@ export const measureSchema = Joi.object({
 
 const COLONY_STATUS = ["forte", "normale", "faible", "morte"];
 
-export const inspectionSchema = Joi.object({
+// Les champs d'une inspection, partagés par l'envoi unitaire et par le lot hors connexion.
+const inspectionFields = {
   id: Joi.string().guid().required(),
   hive_id: Joi.string(),
   // Une inspection saisie sur le terrain ne peut pas être datée du futur.
@@ -45,6 +46,23 @@ export const inspectionSchema = Joi.object({
     .valid(...COLONY_STATUS)
     .required(),
   observations: Joi.string().max(2000).allow("", null),
+};
+
+export const inspectionSchema = Joi.object(inspectionFields);
+
+// Dans le lot, chaque inspection précise sa ruche ; version n'est là que pour une modification.
+export const syncSchema = Joi.object({
+  inspections: Joi.array()
+    .items(
+      Joi.object({
+        ...inspectionFields,
+        hive_id: Joi.string().required(),
+        version: Joi.number().integer().min(1),
+      }),
+    )
+    .min(1)
+    .max(500)
+    .required(),
 });
 
 // tlds: { allow: false } : sinon les adresses en .test du jeu de données seraient refusées.

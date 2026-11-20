@@ -11,6 +11,8 @@ export function createMeasuresService({ hivesService, measuresRepository }) {
       return { items: await measuresRepository.findByHive(hive.id, { limit, offset }), limit, offset };
     },
 
+    // Le repository décide si la trame est nouvelle ({ measure, created }) : rejouer
+    // la même mesure n'est pas une erreur, c'est un 200 au lieu d'un 201.
     async addMeasure(user, hiveId, corps = {}) {
       const hive = await hivesService.getHive(user, hiveId);
       if (corps.hive_id !== undefined && corps.hive_id !== hive.id) {
@@ -18,7 +20,7 @@ export function createMeasuresService({ hivesService, measuresRepository }) {
           `Le corps désigne la ruche ${corps.hive_id}, alors que le chemin désigne ${hive.id}.`,
         );
       }
-      return measuresRepository.add({ hive_id: hive.id, timestamp: corps.timestamp, weight_kg: corps.weight_kg });
+      return measuresRepository.add({ ...corps, hive_id: hive.id });
     },
   };
 }
