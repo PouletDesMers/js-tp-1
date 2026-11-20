@@ -1,9 +1,8 @@
 // Service : la règle métier est-elle respectée ? Il ne lit jamais req ni n'écrit res.
-// Les bornes de pagination restent ici ; leur application appartient au repository
-// (LIMIT / OFFSET en SQL, découpage du tableau en mémoire).
+// Les types, les plages et les champs obligatoires sont déjà vérifiés par le schéma Joi :
+// il ne reste ici que ce qui a besoin de la ruche.
 
 import { ValidationError } from "../errors.js";
-import { validerInspection } from "./validation.js";
 
 const plusRecentEnPremier = (a, b) => Date.parse(b.inspected_at) - Date.parse(a.inspected_at);
 
@@ -17,13 +16,16 @@ export function createInspectionsService({ hivesService, inspectionsRepository }
 
     async addInspection(hiveId, corps = {}) {
       const hive = await hivesService.getHive(hiveId);
-      const detail = validerInspection(corps);
-      if (detail) throw new ValidationError(detail);
+      if (corps.hive_id !== undefined && corps.hive_id !== hive.id) {
+        throw new ValidationError(
+          `Le corps désigne la ruche ${corps.hive_id}, alors que le chemin désigne ${hive.id}.`,
+        );
+      }
       return inspectionsRepository.add({
         id: corps.id,
         hive_id: hive.id,
         inspected_at: corps.inspected_at,
-        queen_present: corps.queen_present,
+        queen_present: corps.queen_present ?? null,
         colony_status: corps.colony_status,
         observations: corps.observations ?? "",
       });

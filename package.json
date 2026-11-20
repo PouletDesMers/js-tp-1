@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test",
-    "dev": "node --watch --env-file=.env tp/tp5-postgres/server.js"
+    "dev": "node --watch --env-file=.env tp/tp6-validate/server.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
   "homepage": "https://github.com/PouletDesMers/js-tp-1#readme",
   "dependencies": {
     "express": "^5.3.0",
+    "joi": "^18.3.2",
     "morgan": "^1.12.1",
     "pg": "^8.23.1"
   }

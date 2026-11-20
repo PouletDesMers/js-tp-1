@@ -10,7 +10,7 @@ import { createInspectionsService } from "./services/inspections.service.js";
 
 import { createHivesController } from "./controllers/hives.controller.js";
 import { createHivesRouter } from "./routes/hives.router.js";
-import { errorHandler, notFound } from "./middlewares/error.js";
+import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 
 export function createApp({ hivesRepository, measuresRepository, inspectionsRepository }) {
   const hivesService = createHivesService({ hivesRepository });
@@ -21,7 +21,7 @@ export function createApp({ hivesRepository, measuresRepository, inspectionsRepo
 
   const app = express();
   app.use(morgan("dev"));
-  app.use(express.json());
+  app.use(express.json({ limit: "1mb" }));
 
   app.get("/health", (req, res) => {
     res.json({ status: "ok" });

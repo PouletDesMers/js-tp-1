@@ -1,29 +1,28 @@
 // Erreurs typées : les couches basses ne connaissent pas HTTP,
 // c'est l'intergiciel d'erreur qui traduit en réponse.
 
-export class HttpError extends Error {
-  constructor(status, title, detail) {
-    super(detail);
+export class AppError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = this.constructor.name; // « NotFoundError », « ValidationError »…
     this.status = status;
-    this.title = title;
-    this.detail = detail;
   }
 }
 
-export class NotFoundError extends HttpError {
-  constructor(detail) {
-    super(404, "Ressource introuvable", detail);
+export class ValidationError extends AppError {
+  constructor(message) {
+    super(message, 400);
   }
 }
 
-export class ValidationError extends HttpError {
-  constructor(detail) {
-    super(400, "Données invalides", detail);
+export class NotFoundError extends AppError {
+  constructor(message) {
+    super(message, 404);
   }
 }
 
-export class ParametreInvalideError extends HttpError {
-  constructor(detail) {
-    super(400, "Paramètre invalide", detail);
+export class ConflictError extends AppError {
+  constructor(message) {
+    super(message, 409);
   }
 }
